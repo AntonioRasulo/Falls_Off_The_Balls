@@ -149,7 +149,7 @@ public class GameScene : Scene
         }
 
         // Load ball content
-        Ball.LoadContent();
+        // Ball.LoadContent();
 
         // Load platform content
         Platform.LoadContent();

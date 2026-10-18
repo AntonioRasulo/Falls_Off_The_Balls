@@ -12,6 +12,7 @@ using MonoGame_Super_Pang.UI;
 using MonoGame_Super_Pang.Backgrounds;
 using MonoGame_Super_Pang.Config;
 using System.Collections.Generic;
+using MonoGame_Super_Pang.GameObjects;
 
 namespace MonoGame_Super_Pang.Scenes;
 
@@ -29,6 +30,12 @@ public class TitleScene : Scene
     // The 3d material  
     private Material _3dMaterial;
 
+    private const int TITLE_LEVEL_CONFIG = 0;
+
+    private List<Ball> _balls;
+
+    private Rectangle _roomBounds;
+
     public override void Initialize()
     {
         // LoadContent is called during base.Initialize().
@@ -37,6 +44,8 @@ public class TitleScene : Scene
         // While on the title screen, we can enable exit on escape so the player
         // can close the game by pressing the escape key.
         Core.ExitOnEscape = true;
+
+        _roomBounds = Core.GraphicsDevice.PresentationParameters.Bounds;
 
         if(_volumeInitialized == false)
         {
@@ -64,6 +73,9 @@ public class TitleScene : Scene
             System.Diagnostics.Debug.WriteLine($"Failed to load theme music: {ex.Message}");
         }
 
+        Ball.LoadContent();
+        _balls = [];
+
         _backgroundRand = new Random();
         int backgroundIndex = _backgroundRand.Next(0, LevelRegistry.AllLevels.Count);
 
@@ -88,6 +100,8 @@ public class TitleScene : Scene
         var camera = new SpriteCamera3d();
         _3dMaterial.SetParameter("MatrixTransform", camera.CalculateMatrixTransform());
         _3dMaterial.SetParameter("ScreenSize", new Vector2(Core.GraphicsDevice.Viewport.Width, Core.GraphicsDevice.Viewport.Height));
+
+        LoadLevel(LevelRegistry.AllLevels[TITLE_LEVEL_CONFIG]);
     }
 
     public override void Update(GameTime gameTime)
@@ -103,6 +117,31 @@ public class TitleScene : Scene
         _3dMaterial.SetParameter("SpinAmount", spinAmount);
 
         TitlePanelManager.Update(gameTime);
+
+        foreach(Ball ball in _balls)
+        {
+            ball.Update(gameTime);
+            Circle ballBounds = ball.GetBounds();
+            Vector2 pos = ball.Position;
+
+            if (ballBounds.Top < _roomBounds.Top)
+            {
+                ball.Bounce(Vector2.UnitY);
+            }
+            else if (ballBounds.Bottom > _roomBounds.Bottom)
+            {
+                ball.Bounce(-Vector2.UnitY);
+            }
+
+            if (ballBounds.Left < _roomBounds.Left)
+            {
+                ball.Bounce(Vector2.UnitX);
+            }
+            else if (ballBounds.Right > _roomBounds.Right)
+            {
+                ball.Bounce(-Vector2.UnitX);
+            }
+        }
     }
 
     public override void Draw(GameTime gameTime)
@@ -122,6 +161,15 @@ public class TitleScene : Scene
         // Always end the sprite batch when finished.
         Core.SpriteBatch.End();
 
+        Core.SpriteBatch.Begin();
+
+        foreach(Ball ball in _balls)
+        {
+            ball.Draw();
+        }
+
+        Core.SpriteBatch.End();
+
         GumService.Default.Draw();
     }
 
@@ -135,6 +183,27 @@ public class TitleScene : Scene
         Directory.CreateDirectory(PlayerStatsManager.saveDirectory);
 
         TitlePanelManager.LoadContent();
+    }
+
+    private void LoadLevel(LevelConfig config)
+    {
+        foreach(var spawnConfig in config.Balls)
+        {
+            BallType ballType = spawnConfig.BallType;
+            switch(spawnConfig.BallType)
+            {
+                case BallType.GREEN_ROUND:
+                case BallType.RED_ROUND:
+                case BallType.BLUE_ROUND:
+                    _balls.Add(new BouncingBall(spawnConfig.Size, spawnConfig.DirectionX, ballType, spawnConfig.Position));
+                break;
+                case BallType.LBLUE_SQUARED:
+                case BallType.DBLUE_SQUARED:
+                case BallType.GREEN_SQUARED:
+                    _balls.Add(new ReflectiveBall(spawnConfig.Size, spawnConfig.DirectionX, ballType, spawnConfig.Position));
+                break;
+            }
+        }
     }
 
 }

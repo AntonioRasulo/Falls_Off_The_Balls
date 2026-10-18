@@ -91,7 +91,7 @@ public class GameOver : Scene
         _font = Core.Content.Load<SpriteFont>("fonts/04B_30");
 
         // Load the font for the title text.
-        _font5x = Content.Load<SpriteFont>("fonts/04B_30_5x");
+        _font5x = Content.Load<SpriteFont>("fonts/MatchaWorld/MatchaWorld");
 
         _backgroundRand = new Random();
         int backgroundIndex = _backgroundRand.Next(0, LevelRegistry.AllLevels.Count);

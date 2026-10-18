@@ -57,7 +57,7 @@ public class TitleScreenButtonsPanel : PangPanel
         _panel.AddChild(_optionsButton);
 
         // Load the font for the title text.
-        _font5x = Core.Content.Load<SpriteFont>("fonts/04B_30_5x");
+        _font5x = Core.Content.Load<SpriteFont>("fonts/MatchaWorld/MatchaWorld");
 
         // Set the position and origin for the Title text.
         Vector2 size = _font5x.MeasureString(TITLE_TEXT);
@@ -82,7 +82,7 @@ public class TitleScreenButtonsPanel : PangPanel
             Core.SpriteBatch.DrawString(_font5x, TITLE_TEXT, _titleTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _titleTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
 
             // Draw the TITLE_TEXT text on top of that at its original position.
-            Core.SpriteBatch.DrawString(_font5x, TITLE_TEXT, _titleTextPos, Color.White, 0.0f, _titleTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
+            Core.SpriteBatch.DrawString(_font5x, TITLE_TEXT, _titleTextPos, Color.DarkBlue, 0.0f, _titleTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
         }
     }
 

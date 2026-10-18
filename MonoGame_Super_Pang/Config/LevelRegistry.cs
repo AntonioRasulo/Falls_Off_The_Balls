@@ -12,6 +12,40 @@ public static class LevelRegistry
 
     public static List<LevelConfig> AllLevels = new List<LevelConfig>
     {
+        new LevelConfig // Title_Screen
+        {
+            Balls = new List<BallSpawnConfig>
+            {
+                new BallSpawnConfig
+                {
+                    Size = BallSize.LARGE, 
+                    DirectionX = 1f,
+                    BallType = BallType.LBLUE_SQUARED,
+                    Position = new Vector2(screenWidth * 0.75f, screenHeight * 0.5f) 
+                },
+                new BallSpawnConfig
+                {
+                    Size = BallSize.LARGE, 
+                    DirectionX = -1f,
+                    BallType = BallType.LBLUE_SQUARED,
+                    Position = new Vector2(screenWidth * 0.25f, screenHeight * 0.5f) 
+                }
+            },
+            Platforms = new List<PlatformConfig>
+            {
+
+            },
+            backgroundStr = new List<string>
+            {
+                "images/backgrounds/clouds1/1",
+                "images/backgrounds/clouds1/2",
+                "images/backgrounds/clouds1/3",
+                "images/backgrounds/clouds1/4"
+            },
+            Enemies = new List<EnemyConfig>
+            {
+            }
+        },
         new LevelConfig // Level 0
         {
             Balls = new List<BallSpawnConfig>
