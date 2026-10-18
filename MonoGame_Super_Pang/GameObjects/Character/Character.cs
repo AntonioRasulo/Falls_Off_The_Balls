@@ -284,12 +284,20 @@ public class Character
 
     public Rectangle getBounds()
     {
+        Sprite currentAnimation = currentState switch
+        {
+            CharacterState.Shooting => _shootAnimation,
+            CharacterState.Walking => _walkAnimation,
+            CharacterState.Idle => _idleSprite,
+            _ => null
+        };
+
         // Creating a bounding rectangle for the character
         Rectangle characterBounds = new Rectangle(
-            (int)(_characterPosition.X - _idleSprite.Width*0.5f),
-            (int)(_characterPosition.Y - _idleSprite.Height*0.5f),
-            (int)_idleSprite.Width,
-            (int)_idleSprite.Height
+            (int)(_characterPosition.X - currentAnimation.Width*0.5f),
+            (int)(_characterPosition.Y - currentAnimation.Height*0.5f),
+            (int)currentAnimation.Width,
+            (int)currentAnimation.Height
         );
 
         return characterBounds;

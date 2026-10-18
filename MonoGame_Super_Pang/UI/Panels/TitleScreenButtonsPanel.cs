@@ -2,6 +2,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameGum;
 using MonoGameLibrary;
+using MonoGame_Super_Pang.GameObjects;
+using System.Collections.Generic;
 
 namespace MonoGame_Super_Pang.UI;
 
@@ -61,7 +63,7 @@ public class TitleScreenButtonsPanel : PangPanel
 
         // Set the position and origin for the Title text.
         Vector2 size = _font5x.MeasureString(TITLE_TEXT);
-        _titleTextPos = new Vector2(640, 300);
+        _titleTextPos = new Vector2(660, 325);
         _titleTextOrigin = size * 0.5f;
     }
 

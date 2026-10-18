@@ -32,6 +32,8 @@ public class TitleScene : Scene
 
     private const int TITLE_LEVEL_CONFIG = 0;
 
+    private const int SPIN_AMOUNT = -150;
+
     private List<Ball> _balls;
 
     private Rectangle _roomBounds;
@@ -101,6 +103,9 @@ public class TitleScene : Scene
         _3dMaterial.SetParameter("MatrixTransform", camera.CalculateMatrixTransform());
         _3dMaterial.SetParameter("ScreenSize", new Vector2(Core.GraphicsDevice.Viewport.Width, Core.GraphicsDevice.Viewport.Height));
 
+        //float spinAmount = (float)Math.Sin(totalSeconds * 0.8) ;
+        _3dMaterial.SetParameter("SpinAmount", SPIN_AMOUNT);
+
         LoadLevel(LevelRegistry.AllLevels[TITLE_LEVEL_CONFIG]);
     }
 
@@ -112,9 +117,9 @@ public class TitleScene : Scene
 
         _3dMaterial.Update();
 
-        double totalSeconds = gameTime.TotalGameTime.TotalSeconds;
-        float spinAmount = (float)Math.Sin(totalSeconds * 0.8) * 0.1f;
-        _3dMaterial.SetParameter("SpinAmount", spinAmount);
+        // double totalSeconds = gameTime.TotalGameTime.TotalSeconds;
+        // float spinAmount = (float)Math.Sin(totalSeconds * 0.8) * 0.1f;
+        // _3dMaterial.SetParameter("SpinAmount", spinAmount);
 
         TitlePanelManager.Update(gameTime);
 
@@ -151,6 +156,15 @@ public class TitleScene : Scene
         // Draw the background
         _levelBackground.Draw();
 
+        Core.SpriteBatch.Begin();
+
+        foreach(Ball ball in _balls)
+        {
+            ball.Draw();
+        }
+
+        Core.SpriteBatch.End();
+
         // Begin the sprite batch to prepare for rendering.
         Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp,
                                 rasterizerState: RasterizerState.CullNone,
@@ -159,15 +173,6 @@ public class TitleScene : Scene
         TitlePanelManager.Draw();
 
         // Always end the sprite batch when finished.
-        Core.SpriteBatch.End();
-
-        Core.SpriteBatch.Begin();
-
-        foreach(Ball ball in _balls)
-        {
-            ball.Draw();
-        }
-
         Core.SpriteBatch.End();
 
         GumService.Default.Draw();
