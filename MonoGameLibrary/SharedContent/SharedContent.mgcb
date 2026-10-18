@@ -19,6 +19,12 @@
 /processorParam:DebugMode=Auto
 /build:effects/3dEffect.fx
 
+#begin effects/3dEffectYZ.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:effects/3dEffectYZ.fx
+
 #begin effects/sceneTransitionEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor

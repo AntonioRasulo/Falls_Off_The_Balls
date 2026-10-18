@@ -32,7 +32,7 @@ public class TitleScene : Scene
 
     private const int TITLE_LEVEL_CONFIG = 0;
 
-    private const int SPIN_AMOUNT = -150;
+    private const int SPIN_AMOUNT = 150;
 
     private List<Ball> _balls;
 
@@ -96,7 +96,7 @@ public class TitleScene : Scene
         PowerUpSpritesHandler.LoadContent();
 
         // Load the 3d effect 
-        _3dMaterial = Core.SharedContent.WatchMaterial("effects/3dEffect");
+        _3dMaterial = Core.SharedContent.WatchMaterial("effects/3dEffectYZ");
         _3dMaterial.IsDebugVisible = false;
 
         var camera = new SpriteCamera3d();
@@ -123,28 +123,31 @@ public class TitleScene : Scene
 
         TitlePanelManager.Update(gameTime);
 
-        foreach(Ball ball in _balls)
+        if(TitlePanelManager.IsTitlePanelVisible())
         {
-            ball.Update(gameTime);
-            Circle ballBounds = ball.GetBounds();
-            Vector2 pos = ball.Position;
+            foreach(Ball ball in _balls)
+            {
+                ball.Update(gameTime);
+                Circle ballBounds = ball.GetBounds();
+                Vector2 pos = ball.Position;
 
-            if (ballBounds.Top < _roomBounds.Top)
-            {
-                ball.Bounce(Vector2.UnitY);
-            }
-            else if (ballBounds.Bottom > _roomBounds.Bottom)
-            {
-                ball.Bounce(-Vector2.UnitY);
-            }
+                if (ballBounds.Top < _roomBounds.Top)
+                {
+                    ball.Bounce(Vector2.UnitY);
+                }
+                else if (ballBounds.Bottom > _roomBounds.Bottom)
+                {
+                    ball.Bounce(-Vector2.UnitY);
+                }
 
-            if (ballBounds.Left < _roomBounds.Left)
-            {
-                ball.Bounce(Vector2.UnitX);
-            }
-            else if (ballBounds.Right > _roomBounds.Right)
-            {
-                ball.Bounce(-Vector2.UnitX);
+                if (ballBounds.Left < _roomBounds.Left)
+                {
+                    ball.Bounce(Vector2.UnitX);
+                }
+                else if (ballBounds.Right > _roomBounds.Right)
+                {
+                    ball.Bounce(-Vector2.UnitX);
+                }
             }
         }
     }
@@ -156,14 +159,17 @@ public class TitleScene : Scene
         // Draw the background
         _levelBackground.Draw();
 
-        Core.SpriteBatch.Begin();
-
-        foreach(Ball ball in _balls)
+        if(TitlePanelManager.IsTitlePanelVisible())
         {
-            ball.Draw();
-        }
+            Core.SpriteBatch.Begin();
 
-        Core.SpriteBatch.End();
+            foreach(Ball ball in _balls)
+            {
+                ball.Draw();
+            }
+
+            Core.SpriteBatch.End();
+        }
 
         // Begin the sprite batch to prepare for rendering.
         Core.SpriteBatch.Begin(samplerState: SamplerState.PointClamp,
