@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using MonoGameLibrary.Graphics;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Audio;
+using System;
 
 namespace MonoGame_Super_Pang.GameObjects;
 
@@ -54,6 +55,8 @@ abstract public class Ball
 
     public static Animation _explosionAnimation;
 
+    private float _rotationSpeed = 0.05f;
+
     public Ball(BallSize ballsize, float dirX, BallType ballType, Vector2 ballInitialPosition = default)
     {
         _ballSize = ballsize;
@@ -88,6 +91,8 @@ abstract public class Ball
 
         _ballSprite.CenterOrigin();
 
+        _rotationSpeed *= dirX;
+
     }
 
     /// <summary>
@@ -97,6 +102,8 @@ abstract public class Ball
     public virtual void Bounce(Vector2 normal)
     {
         Core.Audio.PlaySoundEffect(_bounceSoundEffect);
+        float directionX = _velocity.X/Math.Abs(_velocity.X);
+        _rotationSpeed *= directionX;
     }
 
     /// <summary>
@@ -115,7 +122,13 @@ abstract public class Ball
     /// <summary>
     /// Updates the ball.
     /// </summary>
-    public abstract void Update(GameTime gameTime);
+    public virtual void Update(GameTime gameTime)
+    {
+        if(FreezeHandler.freezeTimer <= 0)
+        {
+            _ballSprite.Rotation += _rotationSpeed;
+        }
+    }
 
     /// <summary>
     /// Draws the ball.

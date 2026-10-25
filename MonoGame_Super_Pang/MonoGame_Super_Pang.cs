@@ -8,7 +8,7 @@ namespace MonoGame_Super_Pang;
 
 public class Game1 : Core
 {
-    public Game1() : base("Monogame Super Pang", 1280, 720, false)
+    public Game1() : base("Falls Off The Balls", 1280, 720, false)
     {
     }
 

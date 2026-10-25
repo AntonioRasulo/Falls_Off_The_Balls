@@ -66,11 +66,12 @@ public class BouncingBall : Ball
         }
 
         Position = newPosition;
-
+        base.Bounce(normal);
     }
 
     public override void Update(GameTime gameTime)
     {
+        base.Update(gameTime);
         if(FreezeHandler.freezeTimer <= 0)
         {
             // Apply gravity each frame

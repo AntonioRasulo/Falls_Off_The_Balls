@@ -7,8 +7,6 @@ namespace MonoGame_Super_Pang.GameObjects;
 public class ReflectiveBall : Ball
 {
 
-    private float _rotationSpeed = 0.05f;
-
     public ReflectiveBall(BallSize ballSize, float dirX, BallType ballType, Vector2 ballInitialPosition = default)
                         :base(ballSize, dirX, ballType, ballInitialPosition)
     {
@@ -17,13 +15,10 @@ public class ReflectiveBall : Ball
         // Multiply the direction vector by the movement speed to get the
         // final velocity
         _velocity = direction * MOVEMENT_SPEED;
-
-        _rotationSpeed = _rotationSpeed * dirX;
     }
 
     public override void Bounce(Vector2 normal)
     {
-        base.Bounce(normal);
         Vector2 newPosition = Position;
 
         // Adjust the position based on the normal to prevent sticking to walls.
@@ -50,16 +45,16 @@ public class ReflectiveBall : Ball
         // Apply reflection based on the normal.
         _velocity = Vector2.Reflect(_velocity, normal);
 
+        base.Bounce(normal);
     }
 
     public override void Update(GameTime gameTime)
     {
+        base.Update(gameTime);
         if(FreezeHandler.freezeTimer <= 0)
         {
             // Update the position of the ball based on the velocity.
             Position += _velocity;
-
-            _ballSprite.Rotation += _rotationSpeed;
         }
     }
 

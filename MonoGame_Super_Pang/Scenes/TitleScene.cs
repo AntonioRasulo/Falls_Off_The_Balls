@@ -223,15 +223,15 @@ public class TitleScene : Scene
                                 rasterizerState: RasterizerState.CullNone,
                                 effect: _3dMaterial.Effect);
 
-        if(TitlePanelManager.IsTitlePanelVisible() && _orangeSpiralAnimation != null)
+        if(TitlePanelManager.IsTitlePanelVisible())
         {
-            _orangeSpiralAnimation.Draw(Core.SpriteBatch, _orangeSpiralAnimationPos);
-        }
+            _orangeSpiralAnimation?.Draw(Core.SpriteBatch, _orangeSpiralAnimationPos);
 
-        if(_orangeSpiralAnimation == null && _timerExplosion >= TIME_EXPLOSION_MS)
-        {
-            TitlePanelManager.Draw();
-            _darkGreenBallSprite.Draw(Core.SpriteBatch, _darkGreenBallSpritePos);
+            if(_orangeSpiralAnimation == null && _timerExplosion >= TIME_EXPLOSION_MS)
+            {
+                TitlePanelManager.Draw();
+                _darkGreenBallSprite.Draw(Core.SpriteBatch, _darkGreenBallSpritePos);
+            }
         }
 
         // Always end the sprite batch when finished.
