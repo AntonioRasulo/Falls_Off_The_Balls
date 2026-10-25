@@ -8,7 +8,7 @@ namespace MonoGame_Super_Pang.UI;
 public class TitleScreenButtonsPanel : PangPanel
 {
 
-    private const string TITLE_TEXT = "Falls\n off\n the\nBalls";
+    private const string TITLE_TEXT = "Falls\n   ff\n the\nBalls";
 
     // The position to draw the monogame text at.
     private Vector2 _titleTextPos;
@@ -82,7 +82,7 @@ public class TitleScreenButtonsPanel : PangPanel
             Core.SpriteBatch.DrawString(_font5x, TITLE_TEXT, _titleTextPos + new Vector2(10, 10), dropShadowColor, 0.0f, _titleTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
 
             // Draw the TITLE_TEXT text on top of that at its original position.
-            Core.SpriteBatch.DrawString(_font5x, TITLE_TEXT, _titleTextPos, Color.Black, 0.0f, _titleTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
+            Core.SpriteBatch.DrawString(_font5x, TITLE_TEXT, _titleTextPos, Color.Aquamarine, 0.0f, _titleTextOrigin, 1.0f, SpriteEffects.None, 1.0f);
         }
     }
 

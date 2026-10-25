@@ -1984,6 +1984,21 @@
 /processorParam:TextureFormat=Color
 /build:images/PowerUps/shield.png
 
+#begin images/titleEffects/71.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/titleEffects/71.png
+
+#begin images/titleEffects/spiral_effect.xml
+/copy:images/titleEffects/spiral_effect.xml
+
 #begin images/UI/All keys and controller icons.png
 /importer:TextureImporter
 /processor:TextureProcessor

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas>
+    <Texture>images/titleEffects/71</Texture>
+    <Regions>
+        <Region name="orangeSpiral1" x="18" y="19" width="25" height="26" />
+        <Region name="orangeSpiral2" x="76" y="14" width="37" height="36" />
+        <Region name="orangeSpiral3" x="136" y="10" width="45" height="46" />
+        <Region name="orangeSpiral4" x="199" y="7" width="47" height="48" />
+        <Region name="orangeSpiral5" x="256" y="2" width="61" height="61" />
+        <Region name="orangeSpiral6" x="319" y="1" width="63" height="63" />
+        <Region name="orangeSpiral7" x="383" y="1" width="63" height="63" />
+        <Region name="orangeSpiral8" x="452" y="1" width="63" height="63" />
+        <Region name="orangeSpiral9" x="519" y="1" width="62" height="62" />
+        <Region name="orangeSpiral10" x="572" y="1" width="62" height="62" />
+    </Regions>
+    <Animations>
+        <Animation name="orange-spiral-animation" delay="50">
+            <Frame region="orangeSpiral1" />
+            <Frame region="orangeSpiral2" />
+            <Frame region="orangeSpiral3" />
+            <Frame region="orangeSpiral4" />
+            <Frame region="orangeSpiral5" />
+            <Frame region="orangeSpiral6" />
+            <Frame region="orangeSpiral7" />
+            <Frame region="orangeSpiral8" />
+            <Frame region="orangeSpiral9" />
+            <Frame region="orangeSpiral10" />
+        </Animation>
+    </Animations>
+</TextureAtlas>

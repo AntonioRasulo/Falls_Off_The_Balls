@@ -10,7 +10,8 @@
 Texture2D SpriteTexture;
 float4x4 MatrixTransform;
 float2 ScreenSize;
-float SpinAmount;
+float SpinAmountX;
+float SpinAmountY;
 
 sampler2D SpriteTextureSampler = sampler_state
 {
@@ -47,16 +48,16 @@ VertexShaderOutput MainVS(VertexShaderInput input)
 
     // convert the debug variable into an angle from 0 to 2 pi. 
     //  shaders use radians for angles, so 2 pi = 360 degrees
-    float angle = SpinAmount * 6.28;
+    float angleX = SpinAmountX * 6.28;
     
     // pre-compute the cos and sin of the angle
-    float cosA = cos(angle);
-    float sinA = sin(angle);
+    float cosA = cos(angleX);
+    float sinA = sin(angleX);
     
     // shift the position to the center of rotation
     pos.xz -= centerXZ;
     
-    // compute the rotation
+    // compute the rotation for x
     float nextX = pos.x * cosA - pos.z * sinA;
     float nextZ = pos.x * sinA + pos.z * cosA;
     
@@ -67,6 +68,31 @@ VertexShaderOutput MainVS(VertexShaderInput input)
     // shift the position away from the center of rotation
     pos.xz += centerXZ;
     
+    // create the center of rotation
+    float2 centerYZ = float2(ScreenSize.y * .5, 0);
+
+    // convert the debug variable into an angle from 0 to 2 pi. 
+    //  shaders use radians for angles, so 2 pi = 360 degrees
+    float angleY = SpinAmountY * 6.28;
+
+    // pre-compute the cos and sin of the angle
+    cosA = cos(angleY);
+    sinA = sin(angleY);
+
+    // shift the position to the center of rotation
+    pos.yz -= centerYZ;
+    
+    // compute the rotation
+    float nextY = pos.y * cosA - pos.z * sinA;
+    nextZ = pos.y * sinA + pos.z * cosA;
+
+    // apply the rotation
+    pos.y = nextY;
+    pos.z = nextZ;
+    
+    // shift the position away from the center of rotation
+    pos.yz += centerYZ;
+
     output.Position = mul(pos, MatrixTransform);
     output.Color = input.Color;
     output.TextureCoordinates = input.TexCoord;

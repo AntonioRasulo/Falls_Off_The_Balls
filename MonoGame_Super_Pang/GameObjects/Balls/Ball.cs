@@ -179,4 +179,9 @@ abstract public class Ball
 
     protected abstract void LoadSprite();
 
+    public static Texture2D getGreenBallSquareTexture()
+    {
+        return _greenBallSquaredTexture;
+    }
+
 }

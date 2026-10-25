@@ -32,11 +32,22 @@ public class TitleScene : Scene
 
     private const int TITLE_LEVEL_CONFIG = 0;
 
-    private const int SPIN_AMOUNT = 150;
+    private const int SPIN_AMOUNT_Y = 150;
 
     private List<Ball> _balls;
 
     private Rectangle _roomBounds;
+
+    private AnimatedSprite _orangeSpiralAnimation;
+    private Vector2 _orangeSpiralAnimationPos;
+
+    private Sprite _darkGreenBallSprite;
+    private Vector2 _darkGreenBallSpritePos;
+    private float _darkGreenBallRot = 0.0f;
+    private float DARK_GREEN_ROT_FACTOR = 0.05f;
+
+    private float _timerExplosion = 0.0f;
+    private float TIME_EXPLOSION_MS = 500.0f;
 
     public override void Initialize()
     {
@@ -96,17 +107,23 @@ public class TitleScene : Scene
         PowerUpSpritesHandler.LoadContent();
 
         // Load the 3d effect 
-        _3dMaterial = Core.SharedContent.WatchMaterial("effects/3dEffectYZ");
+        _3dMaterial = Core.SharedContent.WatchMaterial("effects/3dEffect");
         _3dMaterial.IsDebugVisible = false;
 
         var camera = new SpriteCamera3d();
         _3dMaterial.SetParameter("MatrixTransform", camera.CalculateMatrixTransform());
         _3dMaterial.SetParameter("ScreenSize", new Vector2(Core.GraphicsDevice.Viewport.Width, Core.GraphicsDevice.Viewport.Height));
 
-        //float spinAmount = (float)Math.Sin(totalSeconds * 0.8) ;
-        _3dMaterial.SetParameter("SpinAmount", SPIN_AMOUNT);
+        _3dMaterial.SetParameter("SpinAmountY", SPIN_AMOUNT_Y);
 
-        LoadLevel(LevelRegistry.AllLevels[TITLE_LEVEL_CONFIG]);
+        //LoadLevel(LevelRegistry.AllLevels[TITLE_LEVEL_CONFIG]);
+
+        _orangeSpiralAnimationPos = new Vector2(Core.GraphicsDevice.PresentationParameters.Bounds.Width*0.5f, Core.GraphicsDevice.PresentationParameters.Bounds.Height*0.4f);
+    
+        _darkGreenBallSprite = new Sprite(Ball.getGreenBallSquareTexture());
+        _darkGreenBallSprite.Scale = new Vector2(0.8f);
+        _darkGreenBallSprite.CenterOrigin();
+        _darkGreenBallSpritePos = new Vector2(Core.GraphicsDevice.PresentationParameters.Bounds.Width*0.44f, Core.GraphicsDevice.PresentationParameters.Bounds.Height*0.3f);
     }
 
     public override void Update(GameTime gameTime)
@@ -117,11 +134,32 @@ public class TitleScene : Scene
 
         _3dMaterial.Update();
 
-        // double totalSeconds = gameTime.TotalGameTime.TotalSeconds;
-        // float spinAmount = (float)Math.Sin(totalSeconds * 0.8) * 0.1f;
-        // _3dMaterial.SetParameter("SpinAmount", spinAmount);
+        double totalSeconds = gameTime.TotalGameTime.TotalSeconds;
+        float spinAmountX = (float)Math.Sin(totalSeconds * 0.8) * 0.1f;
+        _3dMaterial.SetParameter("SpinAmountX", spinAmountX);
 
         TitlePanelManager.Update(gameTime);
+
+        if(_orangeSpiralAnimation != null && _orangeSpiralAnimation.IsComplete)
+        {
+            _orangeSpiralAnimation = null;
+        }
+
+        if(_timerExplosion < TIME_EXPLOSION_MS)
+        {
+            float delta = gameTime.ElapsedGameTime.Milliseconds;
+            _timerExplosion+=delta;
+            if(_timerExplosion >= TIME_EXPLOSION_MS)
+            {
+                TextureAtlas spiralAtlas = TextureAtlas.FromFile(Core.Content, "images/titleEffects/spiral_effect.xml");
+                Animation spiralAnimation = spiralAtlas.GetAnimation("orange-spiral-animation");
+                _orangeSpiralAnimation = new AnimatedSprite(spiralAnimation)
+                {
+                    Scale = new Vector2(5.0f, 5.0f)
+                };
+                _orangeSpiralAnimation.CenterOrigin();
+            }
+        }
 
         if(TitlePanelManager.IsTitlePanelVisible())
         {
@@ -149,6 +187,15 @@ public class TitleScene : Scene
                     ball.Bounce(-Vector2.UnitX);
                 }
             }
+
+            _orangeSpiralAnimation?.Update(gameTime);
+            _orangeSpiralAnimation?.CenterOrigin();
+            _darkGreenBallRot += DARK_GREEN_ROT_FACTOR;
+            if(_darkGreenBallRot >= 2* Math.PI)
+            {
+                _darkGreenBallRot = 0.0f;
+            }
+            _darkGreenBallSprite.Rotation = _darkGreenBallRot;
         }
     }
 
@@ -176,7 +223,16 @@ public class TitleScene : Scene
                                 rasterizerState: RasterizerState.CullNone,
                                 effect: _3dMaterial.Effect);
 
-        TitlePanelManager.Draw();
+        if(TitlePanelManager.IsTitlePanelVisible() && _orangeSpiralAnimation != null)
+        {
+            _orangeSpiralAnimation.Draw(Core.SpriteBatch, _orangeSpiralAnimationPos);
+        }
+
+        if(_orangeSpiralAnimation == null && _timerExplosion >= TIME_EXPLOSION_MS)
+        {
+            TitlePanelManager.Draw();
+            _darkGreenBallSprite.Draw(Core.SpriteBatch, _darkGreenBallSpritePos);
+        }
 
         // Always end the sprite batch when finished.
         Core.SpriteBatch.End();
