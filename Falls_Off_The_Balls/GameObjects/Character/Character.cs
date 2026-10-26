@@ -1,0 +1,401 @@
+using System;
+using MonoGameLibrary;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using MonoGameLibrary.Graphics;
+using Microsoft.Xna.Framework.Graphics;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework.Audio;
+using Falls_Off_The_Balls.Config;
+
+namespace Falls_Off_The_Balls.GameObjects;
+
+// Enum to track character state
+public enum CharacterState
+{
+    Idle,
+    Walking,
+    Shooting
+}
+
+public enum WalkingDir
+{
+    IDLE,
+    LEFT,
+    RIGHT
+}
+
+public class Character
+{
+    private CharacterState currentState = CharacterState.Idle;
+    private KeyboardState previousKeyboardState;
+    private GamePadState previousGamePadState;
+
+    // Tracks the position of the character.
+    public static Vector2 _characterPosition { get; set; }
+
+    private Sprite _idleSprite;
+    private AnimatedSprite _walkAnimation;
+    private AnimatedSprite _shootAnimation;
+
+    private Animation _harpoonAnimation;
+
+    private List<Harpoon> _harpoons;
+
+    private readonly Vector2 SCALE = new Vector2(4.0f, 4.0f);
+
+    private const int HARPOON_DELAY = 5;
+
+    private const float THUMBSTICK_DEADZONE = 0.2f;
+
+    private float _immunityDuration = 3.0f; // seconds of immunity
+    private float _immunityTimer = 0f;
+    private float _blinkInterval = 0.1f;    // how fast it blinks
+    private float _blinkTimer = 0f;
+    private bool _isVisible = true;
+
+    public bool IsImmune => _immunityTimer > 0f;
+
+    private SoundEffect _hitSoundEffect;
+
+    private int _lives = PlayerStatsManager.currentStats.Lives;
+
+    public Character()
+    {
+        LoadContent();
+
+        _harpoons = new List<Harpoon>();
+
+        float windowWidth = Core.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        float windowHeight = Core.GraphicsDevice.PresentationParameters.BackBufferHeight;
+
+        _characterPosition = new Vector2(
+            windowWidth*0.5f, 
+            windowHeight-_idleSprite.Height * 0.5f);
+
+        previousKeyboardState = Keyboard.GetState();
+        previousGamePadState = GamePad.GetState(PlayerIndex.One);
+    }
+
+    private void LoadContent()
+    {
+        TextureAtlas characterAtlas = TextureAtlas.FromFile(Core.Content, "images/Character/char_atlas.xml");
+        TextureAtlas shootingAtlas = TextureAtlas.FromFile(Core.Content, "images/Character/shooting_atlas.xml");
+
+        _idleSprite = characterAtlas.CreateSprite("char1");
+        _idleSprite.Scale = SCALE;
+        _idleSprite.CenterOrigin();
+
+        _walkAnimation = characterAtlas.CreateAnimatedSprite("walk-animation");
+        _walkAnimation.Scale = SCALE;
+        _walkAnimation.CenterOrigin();
+
+        TimeSpan speed = TimeSpan.Zero;
+
+        switch (PlayerStatsManager.currentStats.Speed)
+        {
+            case 5.0f:
+                speed = new TimeSpan(0, 0, 0, 0, 150);
+            break;
+            case 6.5f:
+                speed = new TimeSpan(0, 0, 0, 0, 150);
+            break;
+            case 8.0f:
+                speed = new TimeSpan(0, 0, 0, 0, 150);
+            break;
+        }
+
+        _walkAnimation.SetDelay(speed);
+
+        _shootAnimation = shootingAtlas.CreateAnimatedSprite("shooting-animation");
+        _shootAnimation.Scale = SCALE;
+        _shootAnimation.CenterOrigin();
+
+        // Retrieve harpoons frames
+        List<TextureRegion> harpoonFrames = new List<TextureRegion>();
+        for (int harpoonIndex = 100; harpoonIndex <= 170; harpoonIndex++)
+        {
+            String harpoonImagePath = "images/harpoons/items_" + harpoonIndex;
+            Texture2D harpoon2DTexture = Core.Content.Load<Texture2D>(harpoonImagePath);
+            TextureRegion harpoonRegion = new TextureRegion(harpoon2DTexture, 0, 0, harpoon2DTexture.Width, harpoon2DTexture.Height);
+            harpoonFrames.Add(harpoonRegion);
+        }
+
+        _harpoonAnimation = new Animation(harpoonFrames, TimeSpan.FromMilliseconds(HARPOON_DELAY));
+
+        _hitSoundEffect = Core.Content.Load<SoundEffect>("audio/Sound effects/Boss hit 1");
+
+    }
+
+    public void Update(GameTime gameTime)
+    {
+        KeyboardState currentKeyboardState = Keyboard.GetState();
+        GamePadState currentGamepadState = GamePad.GetState(PlayerIndex.One);
+
+        // Handle shooting (highest priority - interrupts other actions)
+        if (IsShootingPressed(currentKeyboardState, currentGamepadState))
+        {
+            currentState = CharacterState.Shooting;
+            _shootAnimation.Reset();
+            Core.Input.GamePads[(int)PlayerIndex.One].SetVibration(0.3f, TimeSpan.FromMilliseconds(250));
+        }
+
+        float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+        if (_immunityTimer > 0f)
+        {
+            _immunityTimer -= delta;
+
+            _blinkTimer += delta;
+            if (_blinkTimer >= _blinkInterval)
+            {
+                _blinkTimer = 0f;
+                _isVisible = !_isVisible; // toggle visibility
+            }
+
+            if (_immunityTimer <= 0f)
+            {
+                _immunityTimer = 0f;
+                _isVisible = true; // ensure visible when immunity ends
+            }
+        }
+
+        switch (currentState)
+        {
+            case CharacterState.Shooting:
+                _shootAnimation.Update(gameTime);
+
+                if (_shootAnimation.IsComplete)
+                {
+
+                    shootBullet();
+
+                    // After shooting, check if moving
+                    currentState = GetWalkingState(currentKeyboardState, currentGamepadState);
+
+                }
+
+            break;
+            case CharacterState.Idle:
+
+                // In case there's an animation for Idle, call update for the nimation here
+
+                currentState = GetWalkingState(currentKeyboardState, currentGamepadState);
+
+            break;
+
+            case CharacterState.Walking:
+
+                _walkAnimation.Update(gameTime);
+
+                Vector2 newPosition = _characterPosition;
+
+                switch(IsCharacterWalking(currentKeyboardState, currentGamepadState))
+                {
+                    case WalkingDir.LEFT:
+                        currentState = CharacterState.Walking;
+                        newPosition.X -= PlayerStatsManager.currentStats.Speed;
+                        _characterPosition = newPosition;
+                        _walkAnimation.Effects = SpriteEffects.None;
+                        _idleSprite.Effects = SpriteEffects.None;
+                        break;
+                    case WalkingDir.RIGHT:
+                        currentState = CharacterState.Walking;
+                        newPosition.X += PlayerStatsManager.currentStats.Speed;
+                        _characterPosition = newPosition;
+                        _walkAnimation.Effects = SpriteEffects.FlipHorizontally;
+                        _idleSprite.Effects = SpriteEffects.FlipHorizontally;
+                        break;
+                    case WalkingDir.IDLE:
+                        currentState = CharacterState.Idle;
+                        break;
+                }
+
+            break;
+        }
+        previousKeyboardState = currentKeyboardState;
+        previousGamePadState = currentGamepadState;
+
+        foreach(Harpoon bullet in _harpoons)
+        {
+            bullet.Update(gameTime);
+        }
+
+        _harpoons.RemoveAll(bullet => bullet.IsAnimationComplete);
+
+        // Create a bounding rectangle for the screen.
+        Rectangle screenBounds = new Rectangle(
+            0,
+            0,
+            Core.GraphicsDevice.PresentationParameters.BackBufferWidth,
+            Core.GraphicsDevice.PresentationParameters.BackBufferHeight
+        );
+
+        // Getting the bounding rectangle for the character
+        Rectangle characterBounds = getBounds();
+
+        Vector2 newCharPosition = _characterPosition;
+
+        // Use distance based checks to determine if the character is within the
+        // bounds of the game screen, and if it is outside that screen edge,
+        // move it back inside.
+        if (characterBounds.Left < screenBounds.Left)
+        {
+            newCharPosition.X = screenBounds.Left + getWidth() * 0.5f;
+            _characterPosition = newCharPosition;
+        }
+        else if (characterBounds.Right > screenBounds.Right)
+        {
+            newCharPosition.X = screenBounds.Right - getWidth() * 0.5f;
+            _characterPosition = newCharPosition;
+        }
+    }
+
+    public void Draw(SpriteBatch spriteBatch)
+    {
+
+        foreach(Harpoon bullet in _harpoons)
+        {
+            bullet.Draw();
+        }
+
+        if(!_isVisible) return;
+
+        Sprite currentAnimation = currentState switch
+        {
+            CharacterState.Shooting => _shootAnimation,
+            CharacterState.Walking => _walkAnimation,
+            CharacterState.Idle => _idleSprite,
+            _ => null
+        };
+
+        if (currentAnimation != null)
+        {
+            Vector2 drawingPosition = _characterPosition;
+            if(currentAnimation == _shootAnimation)
+            {
+                drawingPosition += new Vector2(0, 5);
+            }
+
+            currentAnimation.Draw(spriteBatch, drawingPosition);
+        }
+
+    }
+
+    public Rectangle getBounds()
+    {
+        Sprite currentAnimation = currentState switch
+        {
+            CharacterState.Shooting => _shootAnimation,
+            CharacterState.Walking => _walkAnimation,
+            CharacterState.Idle => _idleSprite,
+            _ => null
+        };
+
+        // Creating a bounding rectangle for the character
+        Rectangle characterBounds = new Rectangle(
+            (int)(_characterPosition.X - currentAnimation.Width*0.5f),
+            (int)(_characterPosition.Y - currentAnimation.Height*0.5f),
+            (int)currentAnimation.Width,
+            (int)currentAnimation.Height
+        );
+
+        return characterBounds;
+    }
+
+    public float getWidth()
+    {
+        return _idleSprite.Width;
+    }
+
+    private void shootBullet()
+    {
+        AnimatedSprite newHarpoon = new AnimatedSprite(_harpoonAnimation);
+
+        _harpoons.Add(new Harpoon(newHarpoon, _characterPosition.X, 720));
+    }
+
+    public void activateImmunity(bool fromPowerUp = false)
+    {
+        _immunityTimer = _immunityDuration;
+        if (!fromPowerUp)
+        {
+            _lives--;
+            Core.Audio.PlaySoundEffect(_hitSoundEffect);
+        }
+        Core.Input.GamePads[(int)PlayerIndex.One].SetVibration(1.0f, TimeSpan.FromMilliseconds(500));
+        _blinkTimer = 0f;
+        _isVisible = true;
+    }
+
+    public void removeHarpoons(List<Harpoon> toRemoveHarpoons)
+    {
+        _harpoons.RemoveAll(harpoon => toRemoveHarpoons.Contains(harpoon));
+    }
+
+    public List<Harpoon> getHarpoons()
+    {
+        return _harpoons;
+    }
+
+    public bool isAlive()
+    {
+        return _lives > 0;
+    }
+
+    public void increaseLives()
+    {
+        _lives++;
+    }
+
+    public int getLives()
+    {
+        return _lives;
+    }
+
+    private bool IsShootingPressed(KeyboardState currentKeyboardState, GamePadState currentGamePadstate)
+    {
+        bool isButtonPressedKeyBoard = currentKeyboardState.IsKeyDown(Keys.Space) && previousKeyboardState.IsKeyUp(Keys.Space);
+        bool isButtonPressedGamePad = currentGamePadstate.IsButtonDown(Buttons.A) && previousGamePadState.IsButtonUp(Buttons.A);
+        bool isButtonPressed = isButtonPressedKeyBoard || isButtonPressedGamePad;
+
+        return isButtonPressed &&
+            currentState != CharacterState.Shooting &&
+            _harpoons.Count < PlayerStatsManager.currentStats.HarpoonNum;
+    }
+
+    private WalkingDir IsCharacterWalking(KeyboardState currentKeyboardState, GamePadState currentGamepadState)
+    {
+        bool IsWalkingLeft = currentKeyboardState.IsKeyDown(Keys.A) ||
+                             currentKeyboardState.IsKeyDown(Keys.Left) ||
+                             currentGamepadState.DPad.Left == ButtonState.Pressed ||
+                             currentGamepadState.ThumbSticks.Left.X < -THUMBSTICK_DEADZONE;
+
+        if(IsWalkingLeft)
+            return WalkingDir.LEFT;
+
+        bool IsWalkingRight = currentKeyboardState.IsKeyDown(Keys.D) ||
+                              currentKeyboardState.IsKeyDown(Keys.Right) ||
+                              currentGamepadState.DPad.Right == ButtonState.Pressed ||
+                              currentGamepadState.ThumbSticks.Left.X > THUMBSTICK_DEADZONE;
+
+        if(IsWalkingRight)
+            return WalkingDir.RIGHT;
+
+        return WalkingDir.IDLE;
+    }
+
+    private CharacterState GetWalkingState(KeyboardState currentKeyboardState, GamePadState currentGamepadState)
+    {
+        switch (IsCharacterWalking(currentKeyboardState, currentGamepadState))
+        {
+            case WalkingDir.LEFT:
+            case WalkingDir.RIGHT:
+                return CharacterState.Walking;
+            case WalkingDir.IDLE:
+                break;
+        }
+        return CharacterState.Idle;
+    }
+
+}

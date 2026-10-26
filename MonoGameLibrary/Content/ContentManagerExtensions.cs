@@ -113,7 +113,7 @@ public static class ContentManagerExtensions
         var process = Process.Start(new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = "build MonoGame_Super_Pang.csproj -t:WatchContent --tl:off",
+            Arguments = "build Falls_Off_The_Balls.csproj -t:WatchContent --tl:off",
             WorkingDirectory = projectDirectory,
             WindowStyle = ProcessWindowStyle.Normal,
             UseShellExecute = false,
